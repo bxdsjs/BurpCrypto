@@ -13,25 +13,17 @@ import burp.utils.Utils;
 import burp.zuc.ZUCUIHandler;
 import cn.hutool.crypto.SecureUtil;
 import org.iq80.leveldb.DB;
-import org.iq80.leveldb.Options;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.BurpExtension;
-import burp.api.montoya.core.Registration;
 import burp.api.montoya.intruder.PayloadProcessor;
-
-import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
 public class BurpExtender implements BurpExtension {
     public MontoyaApi api;
@@ -67,21 +59,15 @@ public class BurpExtender implements BurpExtension {
         SecureUtil.disableBouncyCastle();
         Utils.stdout = this.stdout = new PrintWriter(System.out, true);
         Utils.stderr = this.stderr = new PrintWriter(System.err, true);
-        // 使用唯一 ldb 文件夹名
+        // 使用系统临时目录存储 LevelDB 数据，确保始终可写
+        String tmpDir = System.getProperty("java.io.tmpdir");
         ldbFolderName = "BurpCrypto_" + System.currentTimeMillis() + ".ldb";
-        File ldbFile = new File(ldbFolderName);
-        // 初始化前如有 ldb 文件夹则递归删除
-        if (ldbFile.exists()) {
-            try {
-                java.nio.file.Files.walk(ldbFile.toPath())
-                    .sorted((a, b) -> b.compareTo(a))
-                    .forEach(p -> {
-                        try { java.nio.file.Files.delete(p); } catch (IOException ignored) {}
-                    });
-                if (stdout != null) stdout.println("[BurpCrypto] Old LevelDB folder deleted before init.");
-            } catch (IOException e) {
-                if (stdout != null) stdout.println("[BurpCrypto] Failed to delete old LevelDB folder before init: " + e.getMessage());
-            }
+        File ldbFile = new File(tmpDir, ldbFolderName);
+        // 确保目录存在且可写
+        if (!ldbFile.exists() && !ldbFile.mkdirs()) {
+            if (stdout != null) stdout.println("[BurpCrypto] Warning: Could not create LevelDB directory in tmp, try fallback to current dir...");
+            ldbFile = new File(ldbFolderName);
+            ldbFile.mkdirs();
         }
         if (this.store != null) {
             try {
@@ -173,7 +159,11 @@ public class BurpExtender implements BurpExtension {
         try { Thread.sleep(1500); } catch (InterruptedException ignored) {}
         // 卸载时删除本次唯一 ldb 文件夹
         if (ldbFolderName != null) {
-            File ldbFile = new File(ldbFolderName);
+            String tmpDir = System.getProperty("java.io.tmpdir");
+            File ldbFile = new File(tmpDir, ldbFolderName);
+            if (!ldbFile.exists()) {
+                ldbFile = new File(ldbFolderName);
+            }
             if (ldbFile.exists()) {
                 try {
                     java.nio.file.Files.walk(ldbFile.toPath())
