@@ -1,10 +1,28 @@
 # BurpCrypto
-[![Releases](https://img.shields.io/github/v/release/whwlsfb/BurpCrypto.svg?include_prereleases&style=square)](https://github.com/whwlsfb/BurpCrypto/releases)
-[![Downloads](https://img.shields.io/github/downloads/whwlsfb/BurpCrypto/total?label=Release%20Download)](https://github.com/whwlsfb/BurpCrypto/releases/latest)
+[![Releases](https://img.shields.io/github/v/release/bxdsjs/BurpCrypto.svg?include_prereleases&style=square)](https://github.com/bxdsjs/BurpCrypto/releases)
+[![Downloads](https://img.shields.io/github/downloads/bxdsjs/BurpCrypto/total?label=Release%20Download)](https://github.com/bxdsjs/BurpCrypto/releases/latest)
 
 Burpcrypto is a collection of burpsuite encryption plug-ins, supporting AES/RSA/DES/ExecJs(execute JS encryption code in burpsuite).
 
 English | [简体中文](./README-zh_CN.md)
+
+# 🔧 本 Fork 的改进
+
+本仓库在 [whwlsfb/BurpCrypto](https://github.com/whwlsfb/BurpCrypto) 基础上，合并了 [PR #53](https://github.com/whwlsfb/BurpCrypto/pull/53)（作者 [tomcruiseqi](https://github.com/tomcruiseqi)）并进行了额外修复，主要变更如下：
+
+### 🚀 API 升级
+- 从旧的 `burp-extender-api` 升级到 **Montoya API 2025.6**
+- 主类 `BurpExtender` 改为实现 `BurpExtension` 接口
+- 所有 PayloadProcessor 迁移至 Montoya API
+- 兼容 **Burp Suite 2025.6+**
+
+### 🐛 Bug 修复
+- **修复 LevelDB 目录创建失败**：使用系统临时目录（`java.io.tmpdir`）存储 LevelDB 数据，解决 Burp 工作目录无写权限时插件无法加载的问题
+- **修复 LevelDB 文件锁冲突**：每次插件加载使用唯一文件夹名，解决 Windows 下多实例/重复加载时的文件锁冲突
+- **卸载时自动清理**：插件卸载时自动删除临时 LevelDB 数据文件
+
+### 📦 下载
+👉 [GitHub Releases](https://github.com/bxdsjs/BurpCrypto/releases/tag/v0.1.9.1-montoya)
 
 # Build
 `$ mvn package`
