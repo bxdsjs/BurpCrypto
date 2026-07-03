@@ -57,8 +57,24 @@ public class BurpExtender implements BurpExtension {
     public void initialize(MontoyaApi api) {
         this.api = api;
         SecureUtil.disableBouncyCastle();
-        Utils.stdout = this.stdout = new PrintWriter(System.out, true);
-        Utils.stderr = this.stderr = new PrintWriter(System.err, true);
+        Utils.stdout = this.stdout = new PrintWriter(new java.io.OutputStream() {
+            @Override public void write(int b) {
+                byte[] buf = {(byte)b};
+                try { api.logging().logToOutput(new String(buf, "UTF-8")); } catch (Exception ignored) {}
+            }
+            @Override public void write(byte[] b, int off, int len) {
+                try { api.logging().logToOutput(new String(b, off, len, "UTF-8")); } catch (Exception ignored) {}
+            }
+        }, true);
+        Utils.stderr = this.stderr = new PrintWriter(new java.io.OutputStream() {
+            @Override public void write(int b) {
+                byte[] buf = {(byte)b};
+                try { api.logging().logToError(new String(buf, "UTF-8")); } catch (Exception ignored) {}
+            }
+            @Override public void write(byte[] b, int off, int len) {
+                try { api.logging().logToError(new String(b, off, len, "UTF-8")); } catch (Exception ignored) {}
+            }
+        }, true);
         // 使用系统临时目录存储 LevelDB 数据，确保始终可写
         String tmpDir = System.getProperty("java.io.tmpdir");
         ldbFolderName = "BurpCrypto_" + System.currentTimeMillis() + ".ldb";
