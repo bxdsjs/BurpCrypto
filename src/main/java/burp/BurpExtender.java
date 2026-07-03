@@ -89,9 +89,14 @@ public class BurpExtender implements BurpExtension {
             api.logging().logToError("LevelDb init failed! error message: " + e.getMessage());
         }
         stdout.println("BurpCrypto loaded successfully!\r\n");
+        stdout.println("========================================");
+        stdout.println("Congratulations on the successful installation!");
+        stdout.println("This plugin is modified from bxdsjs — thank you for using it.");
+        stdout.println("========================================");
         stdout.println("Anthor: Whwlsfb");
         stdout.println("Email: whwlsfb@wanghw.cn");
         stdout.println("Github: https://github.com/whwlsfb/BurpCrypto");
+        stdout.println("Fork:   https://github.com/bxdsjs/BurpCrypto");
         InitUi();
     }
 
